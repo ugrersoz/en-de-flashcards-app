@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Language Flashcards — EN ↔ DE</title>
+  <style>
+    /* =====================
+       THEME VARIABLES
+       ===================== */
+    :root{
+      --bg:#0f172a;          /* slate-900 */
+      --panel:#111827dd;     /* gray-900/87 */
+      --muted:#64748b;       /* slate-500 */
+      --text:#e2e8f0;        /* slate-200 */
+      --card:#0b1426;        /* dark card */
+      --card-border:#1f2d3f;
+      --brand:#22d3ee;       /* cyan-400 */
+      --accent:#a78bfa;      /* violet-400 */
+      --ok:#34d399;          /* emerald-400 */
+      --warn:#fb7185;        /* rose-400 */
+      --shadow: 0 20px 60px rgba(0,0,0,.35);
+      --touch: 48px;         /* min touch target */
+      --radius: 22px;        /* rounded */
+      --scale: 1;            /* UI scale (user control) */
+    }
+
+    /* Light theme overrides */
+    body[data-theme="light"]{
+      --bg:#f8fafc;          /* slate-50 */
+      --panel:#ffffffee;     /* white/93 */
+      --muted:#475569;       /* slate-600 */
+      --text:#0f172a;        /* slate-900 */
+      --card:#ffffff;        /* white */
+      --card-border:#e2e8f0; /* slate-200 */
+      --shadow: 0 20px 60px rgba(2,6,23,.08);
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      color:var(--text); background: radial-gradient(1000px 600px at 10% 0%, #1e293b 0%, #0b1222 60%, #070d1a 100%), var(--bg);
+      background-attachment: fixed;
+      display:flex; align-items:center; justify-content:center; padding: clamp(16px, 2.4vw, 28px);
+      font-size: calc(16px * var(--scale));
+    }
+    body[data-theme="light"]{ background: var(--bg); }
+
+    .app{width:min(1200px,100%);}
+    header{
+      display:flex; gap:12px; align-items:center; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap
+    }
+    .brand{display:flex; gap:12px; align-items:center}
+    .badge{font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:#0b1222; background:linear-gradient(90deg,var(--brand),var(--accent)); padding:6px 10px; border-radius:999px; font-weight:700}
+    .title{font-weight:800; font-size:clamp(18px,3vw,28px)}
+
+    .toolbar{display:flex; gap:8px; flex-wrap:wrap; align-items:center}
+    button, .select, .range {
+      min-height: var(--touch); border:none; border-radius:14px; padding:12px 16px; background:#0b1222; color:var(--text); cursor:pointer; box-shadow:var(--shadow); transition:transform .08s ease, background .2s ease, opacity .2s ease; font-size:1rem
+    }
+    body[data-theme="light"] button, body[data-theme="light"] .select{ background:#eef2ff }
+    button:hover{transform:translateY(-1px)}
+    button:active{transform:translateY(0)}
+    .primary{background:linear-gradient(90deg,var(--brand), var(--accent)); color:#0b1222; font-weight:800}
+    .ghost{background:transparent; outline:1px solid #33415544}
+    .danger{background:linear-gradient(90deg,#fb7185,#f97316)}
+
+    .grid{display:grid; grid-template-columns: 380px 1fr; gap:16px}
+    @media (max-width: 1024px){ .grid{grid-template-columns:1fr} }
+
+    .panel{background: var(--panel); border: 1px solid #24304222; border-radius:var(--radius); padding:16px; box-shadow: var(--shadow)}
+    body[data-theme="light"] .panel{ border-color: var(--card-border) }
+    .panel h3{margin:0 0 10px; color:var(--muted); font-weight:700; letter-spacing:.03em}
+    .lang-select{display:flex; gap:8px; flex-wrap:wrap}
+
+    .progress{display:flex; align-items:center; gap:8px; margin-top:8px}
+    .bar{height:12px; background:#0f172a; border-radius:999px; overflow:hidden; flex:1; outline:1px solid #24304222}
+    body[data-theme="light"] .bar{ background:#e2e8f0 }
+    .bar>i{display:block; height:100%; width:0; background:linear-gradient(90deg,var(--ok),#10b981)}
+    .stat{font-size:.9rem; color:var(--muted)}
+
+    /* Card */
+    .stage{position:relative; min-height:420px; display:grid; place-items:center}
+    .card{ width:min(720px, 100%); aspect-ratio: 16/10; perspective: 1000px; touch-action: pan-y }
+    .card-inner{ position:relative; width:100%; height:100%; transform-style:preserve-3d; transition: transform .65s cubic-bezier(.2,.8,.2,1) }
+    .card.flip .card-inner{ transform: rotateY(180deg) }
+    .face{
+      position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px;
+      border-radius:var(--radius); padding: clamp(18px, 2vw, 28px);
+      background: radial-gradient(800px 400px at 10% 0%, #1f2a41, var(--card)); border:1px solid var(--card-border); box-shadow:var(--shadow); backface-visibility:hidden;
+    }
+    body[data-theme="light"] .face{ background: #ffffff; }
+    .face.back{ transform: rotateY(180deg) }
+    .phrase{font-size: clamp(22px, 3.6vw, 40px); font-weight:800; text-align:center}
+    .hint{font-size: clamp(13px, 1.8vw, 16px); color:var(--muted)}
+    .chips{display:flex; gap:6px; flex-wrap:wrap; justify-content:center}
+    .chip{font-size:12px; padding:8px 12px; border-radius:999px; background:#0b1222; color:var(--muted); outline:1px solid #22304733}
+    body[data-theme="light"] .chip{ background:#f1f5f9 }
+
+    .card-actions{display:flex; justify-content:center; gap:8px; margin-top:14px; flex-wrap:wrap}
+
+    .list{max-height: 420px; overflow:auto; border-radius:16px; outline:1px solid #1e293b22}
+    .row{display:flex; align-items:center; gap:8px; padding:14px 14px; border-bottom:1px solid #14203422}
+    .row:last-child{border-bottom:none}
+    .row input{transform:translateY(1px); width: var(--touch); height: var(--touch)}
+    .row .idx{opacity:.7; font-size:.85rem; width:32px; text-align:right}
+    .row .txt{flex:1; font-size:1rem}
+    .row .lang{font-size:.9rem; color:var(--muted)}
+
+    .controls{display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:8px}
+    .select, select{appearance:none; padding-right:36px; position:relative}
+    .select-wrap{position:relative}
+    .select-wrap:after{content:'▾'; position:absolute; right:12px; top:50%; transform:translateY(-50%); pointer-events:none; opacity:.6}
+
+    .range{ padding: 10px 14px; }
+    .range input{ width: 160px }
+
+    .fade-out{animation:fadeOut .4s ease forwards}
+    @keyframes fadeOut{to{opacity:0; transform:translateY(6px)}}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="brand">
+        <span class="badge" id="ui-badge">Flashcards</span>
+        <div class="title" id="ui-title">Interactive Language Flashcards</div>
+      </div>
+      <div class="toolbar">
+        <div class="select-wrap">
+          <select id="theme" class="select" title="Theme">
+            <option value="auto">Auto</option>
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+          </select>
+        </div>
+        <div class="range" title="UI size">
+          <label style="margin-right:8px" id="ui-size">Size</label>
+          <input id="scale" type="range" min="0.9" max="1.3" step="0.05" value="1" />
+        </div>
+        <button id="btn-shuffle" title="Shuffle" class="ghost">🔀 <span class="label">Shuffle</span></button>
+        <button id="btn-hide-learned" class="ghost" title="Hide learned">🙈 <span class="label">Hide learned</span></button>
+        <button id="btn-reset" class="danger" title="Reset progress">♻️ <span class="label">Reset</span></button>
+      </div>
+    </header>
+
+    <div class="grid">
+      <!-- Left: Controls & list -->
+      <section class="panel">
+        <h3 id="ui-learn">Which language do you want to learn?</h3>
+        <div class="lang-select" role="group" aria-label="Target language">
+          <button class="primary" data-target="de">🇩🇪 Deutsch</button>
+          <button class="ghost" data-target="en">🇬🇧 English</button>
+        </div>
+
+        <div class="progress">
+          <div class="bar" aria-hidden="true"><i id="bar"></i></div>
+          <div class="stat" id="stat">0 / 0</div>
+        </div>
+
+        <h3 style="margin-top:14px" id="ui-phrases">Phrases</h3>
+        <div class="list" id="list" aria-label="Phrases list"></div>
+      </section>
+
+      <!-- Right: Flashcard stage -->
+      <section class="panel stage">
+        <div class="card" id="card" aria-live="polite" aria-label="Flashcard">
+          <div class="card-inner">
+            <div class="face front">
+              <div class="hint" id="front-hint">Tap to flip</div>
+              <div class="phrase" id="front">Hallo! Wie geht's?</div>
+              <div class="chips" id="front-tags"></div>
+            </div>
+            <div class="face back">
+              <div class="hint" id="back-hint">Translation</div>
+              <div class="phrase" id="back">Hi! How are you?</div>
+              <div class="chips" id="back-tags"></div>
+            </div>
+          </div>
+        </div>
+        <div class="card-actions">
+          <button id="btn-prev" class="ghost" title="Previous">⏮️ <span class="label">Prev</span></button>
+          <button id="btn-flip" class="primary" title="Flip">🔁 <span class="label">Flip</span></button>
+          <button id="btn-next" class="ghost" title="Next">⏭️ <span class="label">Next</span></button>
+          <button id="btn-learned" class="ghost" title="Mark as learned">✅ <span class="label">Mark as learned</span></button>
+        </div>
+      </section>
+    </div>
+  </div>
+
+<script>
+// --- i18n ---
+const i18n = {
+  en: {
+    badge: "Flashcards",
+    title: "Interactive Language Flashcards",
+    learnQ: "Which language do you want to learn?",
+    shuffle: "Shuffle",
+    hideLearned: "Hide learned",
+    showLearned: "Show learned",
+    reset: "Reset",
+    phrases: "Phrases",
+    tap: "Tap to flip",
+    translation: "Translation",
+    prev: "Prev", next: "Next", flip: "Flip",
+    mark: "Mark as learned", unmark: "Unmark learned",
+    theme: "Theme", size: "Size",
+    theme_auto: "Auto", theme_light: "Light", theme_dark: "Dark",
+  },
+  de: {
+    badge: "Lernkarten",
+    title: "Interaktive Sprachkarten",
+    learnQ: "Welche Sprache möchtest du lernen?",
+    shuffle: "Mischen",
+    hideLearned: "Gelerntes ausblenden",
+    showLearned: "Gelerntes anzeigen",
+    reset: "Zurücksetzen",
+    phrases: "Sätze",
+    tap: "Zum Umdrehen tippen",
+    translation: "Übersetzung",
+    prev: "Zurück", next: "Weiter", flip: "Drehen",
+    mark: "Als gelernt markieren", unmark: "Markierung entfernen",
+    theme: "Thema", size: "Größe",
+    theme_auto: "Automatisch", theme_light: "Hell", theme_dark: "Dunkel",
+  },
+  tr: {
+    badge: "Kartlar",
+    title: "Etkileşimli Dil Kartları",
+    learnQ: "Hangi dili öğrenmek istiyorsun?",
+    shuffle: "Karıştır",
+    hideLearned: "Öğrenilenleri gizle",
+    showLearned: "Öğrenilenleri göster",
+    reset: "Sıfırla",
+    phrases: "İfadeler",
+    tap: "Çevirmek için tıkla",
+    translation: "Çeviri",
+    prev: "Geri", next: "İleri", flip: "Çevir",
+    mark: "Öğrenildi olarak işaretle", unmark: "İşareti kaldır",
+    theme: "Tema", size: "Boyut",
+    theme_auto: "Oto", theme_light: "Aydınlık", theme_dark: "Koyu",
+  }
+};
+
+function pickUI(){
+  const lang = (navigator.language||'en').slice(0,2);
+  return i18n[lang] || i18n.en;
+}
+const UI = pickUI();
+
+function $(id){ return document.getElementById(id); }
+
+function setUILabels(){
+  $("ui-badge").textContent = UI.badge;
+  $("ui-title").textContent = UI.title;
+  $("ui-learn").textContent = UI.learnQ;
+  $("btn-shuffle").querySelector('.label').textContent = UI.shuffle;
+  const hideBtn = $("btn-hide-learned");
+  hideBtn.querySelector('.label').textContent = UI.hideLearned;
+  hideBtn.dataset.mode = 'hide';
+  $("btn-reset").querySelector('.label').textContent = UI.reset;
+  $("ui-phrases").textContent = UI.phrases;
+  $("front-hint").textContent = UI.tap;
+  $("back-hint").textContent = UI.translation;
+  $("btn-prev").querySelector('.label').textContent = UI.prev;
+  $("btn-next").querySelector('.label').textContent = UI.next;
+  $("btn-flip").querySelector('.label').textContent = UI.flip;
+  $("btn-learned").querySelector('.label').textContent = UI.mark;
+  $("ui-size").textContent = UI.size;
+  // Theme select labels
+  const themeSel = $("theme");
+  themeSel.options[0].text = UI.theme_auto;
+  themeSel.options[1].text = UI.theme_light;
+  themeSel.options[2].text = UI.theme_dark;
+}
+setUILabels();
+
+// --- Dataset: 55 phrases (expanded) ---
+const PHRASES = [
+  { en:"Hi! How are you?", de:"Hallo! Wie geht's?", tags:['greeting'] },
+  { en:"Where is the lecture hall?", de:"Wo ist der Hörsaal?", tags:['campus','navigation'] },
+  { en:"What time does the class start?", de:"Wann beginnt die Vorlesung?", tags:['schedule','campus'] },
+  { en:"Could you share your notes?", de:"Könntest du deine Notizen teilen?", tags:['study','peer'] },
+  { en:"I have a student discount.", de:"Ich habe einen Studierendenrabatt.", tags:['shopping','money'] },
+  { en:"Is the library open today?", de:"Hat die Bibliothek heute geöffnet?", tags:['library','campus'] },
+  { en:"I need to recharge my transit card.", de:"Ich muss meine Fahrkarte aufladen.", tags:['transport'] },
+  { en:"Where can I print this?", de:"Wo kann ich das ausdrucken?", tags:['campus','it'] },
+  { en:"Let's meet at the cafeteria.", de:"Lass uns in der Mensa treffen.", tags:['food','social'] },
+  { en:"Do we have homework due tomorrow?", de:"Haben wir morgen Hausaufgaben abzugeben?", tags:['study'] },
+  { en:"I'm looking for student housing.", de:"Ich suche eine Studentenwohnung.", tags:['housing'] },
+  { en:"Can I pay by card?", de:"Kann ich mit Karte bezahlen?", tags:['shopping','money'] },
+  { en:"Could you speak more slowly, please?", de:"Könntest du bitte langsamer sprechen?", tags:['polite','conversation'] },
+  { en:"Where is the nearest supermarket?", de:"Wo ist der nächste Supermarkt?", tags:['city','shopping'] },
+  { en:"Good luck with your exam!", de:"Viel Erfolg bei deiner Prüfung!", tags:['exam','social'] },
+  { en:"I have an appointment at 3 pm.", de:"Ich habe um 15 Uhr einen Termin.", tags:['time'] },
+  { en:"Can you recommend a doctor?", de:"Kannst du einen Arzt empfehlen?", tags:['health'] },
+  { en:"Where can I buy a SIM card?", de:"Wo kann ich eine SIM-Karte kaufen?", tags:['phone','city'] },
+  { en:"I missed the bus.", de:"Ich habe den Bus verpasst.", tags:['transport'] },
+  { en:"The Wi‑Fi isn't working.", de:"Das WLAN funktioniert nicht.", tags:['it'] },
+  { en:"Is there a gym nearby?", de:"Gibt es in der Nähe ein Fitnessstudio?", tags:['sports','city'] },
+  { en:"I would like to book an appointment.", de:"Ich möchte einen Termin vereinbaren.", tags:['admin'] },
+  { en:"Where can I find a study group?", de:"Wo finde ich eine Lerngruppe?", tags:['study','peer'] },
+  { en:"Could you correct my pronunciation?", de:"Kannst du meine Aussprache korrigieren?", tags:['language'] },
+  { en:"How much is the rent per month?", de:"Wie hoch ist die Miete pro Monat?", tags:['housing','money'] },
+  { en:"Is this seat taken?", de:"Ist dieser Platz frei?", tags:['social'] },
+  { en:"I will be late by 10 minutes.", de:"Ich komme 10 Minuten später.", tags:['time'] },
+  { en:"Where is the lost and found?", de:"Wo ist das Fundbüro?", tags:['city'] },
+  { en:"Can I get a refund?", de:"Kann ich eine Rückerstattung bekommen?", tags:['shopping'] },
+  { en:"How do I register for the course?", de:"Wie melde ich mich für den Kurs an?", tags:['university'] },
+  { en:"What is the deadline?", de:"Wie ist die Abgabefrist?", tags:['study','time'] },
+  { en:"Can we switch to English/German?", de:"Können wir auf Englisch/Deutsch wechseln?", tags:['language'] },
+  { en:"Where can I recycle this?", de:"Wo kann ich das recyceln?", tags:['city','environment'] },
+  { en:"Is there vegetarian food?", de:"Gibt es vegetarisches Essen?", tags:['food'] },
+  { en:"Please send me the PDF.", de:"Bitte schick mir das PDF.", tags:['it','study'] },
+  { en:"Turn left at the next street.", de:"Biege an der nächsten Straße links ab.", tags:['navigation'] },
+  { en:"How long does it take?", de:"Wie lange dauert es?", tags:['time'] },
+  { en:"I need to extend my visa.", de:"Ich muss mein Visum verlängern.", tags:['admin'] },
+  { en:"Where is the pharmacy?", de:"Wo ist die Apotheke?", tags:['health','city'] },
+  { en:"Can you email the slides?", de:"Kannst du die Folien mailen?", tags:['study','it'] },
+  { en:"Can I sit with you?", de:"Kann ich mich zu dir setzen?", tags:['social'] },
+  { en:"How do I get to the station?", de:"Wie komme ich zum Bahnhof?", tags:['navigation','transport'] },
+  { en:"What’s your major?", de:"Was studierst du?", tags:['university'] },
+  { en:"Could you lend me a pen?", de:"Könntest du mir einen Stift leihen?", tags:['study','peer'] },
+  { en:"Where can I buy bread?", de:"Wo kann ich Brot kaufen?", tags:['food','city'] },
+  { en:"I don’t understand.", de:"Ich verstehe nicht.", tags:['conversation'] },
+  { en:"What’s your favorite sport?", de:"Was ist dein Lieblingssport?", tags:['sports','social'] },
+  { en:"Can you help me with this exercise?", de:"Kannst du mir bei dieser Übung helfen?", tags:['study'] },
+  { en:"How much does this cost?", de:"Wie viel kostet das?", tags:['shopping','money'] },
+  { en:"I’m hungry.", de:"Ich habe Hunger.", tags:['food'] },
+  { en:"Do you have siblings?", de:"Hast du Geschwister?", tags:['conversation'] },
+  { en:"See you tomorrow!", de:"Bis morgen!", tags:['social','greeting'] },
+  { en:"Can I use your charger?", de:"Kann ich dein Ladegerät benutzen?", tags:['it','peer'] },
+  { en:"The weather is nice today.", de:"Das Wetter ist heute schön.", tags:['weather'] },
+  { en:"I’m looking for a part-time job.", de:"Ich suche einen Teilzeitjob.", tags:['work'] },
+];
+
+// --- State ---
+let target = 'de';
+let order = [...PHRASES.keys()];
+let idx = 0;
+let learned = new Set(JSON.parse(localStorage.getItem('learned-de')||'[]'));
+let hideLearned = false;
+
+const STORAGE = {
+  theme: 'fc-theme',
+  scale: 'fc-scale'
+};
+
+function persist(){ localStorage.setItem(`learned-${target}`, JSON.stringify([...learned])); }
+
+function setTarget(next){
+  if(next===target) return;
+  persist();
+  target = next;
+  learned = new Set(JSON.parse(localStorage.getItem(`learned-${target}`)||'[]'));
+  shuffle();
+  idx = 0;
+  draw();
+  document.querySelectorAll('[data-target]').forEach(btn=>{
+    btn.className = btn.dataset.target===target ? 'primary' : 'ghost';
+  });
+}
+
+function shuffle(){ order = [...PHRASES.keys()].sort(()=>Math.random()-.5); idx=0; }
+function currentItem(){ return PHRASES[ order[idx] ]; }
+
+function drawCard(item){
+  const front = $('front');
+  const back = $('back');
+  const frontTags = $('front-tags');
+  const backTags = $('back-tags');
+  const card = $('card');
+  card.classList.remove('flip');
+
+  if(target==='de'){ front.textContent = item.de; back.textContent = item.en; }
+  else { front.textContent = item.en; back.textContent = item.de; }
+
+  frontTags.innerHTML = backTags.innerHTML = '';
+  item.tags.forEach(t=>{
+    const a=document.createElement('span'); a.className='chip'; a.textContent = '#'+t; frontTags.appendChild(a);
+    const b=document.createElement('span'); b.className='chip'; b.textContent = '#'+t; backTags.appendChild(b);
+  });
+
+  const btn = $('btn-learned');
+  const marked = learned.has(order[idx]);
+  btn.className = marked ? 'primary' : 'ghost';
+  btn.querySelector('.label').textContent = marked ? UI.unmark : UI.mark;
+}
+
+function drawList(){
+  const list = $('list');
+  list.innerHTML='';
+  order.forEach((k, i)=>{
+    const it = PHRASES[k];
+    const isLearned = learned.has(k);
+    if(hideLearned && isLearned) return;
+    const row = document.createElement('div');
+    row.className = 'row';
+    row.innerHTML = `
+      <div class="idx">${i+1}</div>
+      <div class="txt">${target==='de'?it.de:it.en}</div>
+      <div class="lang">${target==='de'?it.en:it.de}</div>
+      <input type="checkbox" ${isLearned?'checked':''} aria-label="learned" />
+    `;
+    const cb = row.querySelector('input');
+    cb.addEventListener('change', ()=>{
+      if(cb.checked) learned.add(k); else learned.delete(k);
+      persist();
+      updateProgress();
+      if(hideLearned && cb.checked){ row.classList.add('fade-out'); setTimeout(drawList, 350); }
+    });
+    row.addEventListener('click', (e)=>{ if(e.target.tagName==='INPUT') return; idx = i; draw(); });
+    list.appendChild(row);
+  });
+}
+
+function updateProgress(){
+  const total = PHRASES.length;
+  const n = learned.size;
+  const pct = Math.round((n/total)*100);
+  $('bar').style.width = pct+'%';
+  $('stat').textContent = `${n} / ${total}`;
+}
+
+function draw(){
+  drawCard(currentItem());
+  drawList();
+  updateProgress();
+}
+
+// --- Theme + Size (persist) ---
+function applyTheme(mode){
+  const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const finalMode = mode==='auto' ? (prefersDark ? 'dark' : 'light') : mode;
+  document.body.dataset.theme = finalMode;
+}
+
+function initTheme(){
+  const saved = localStorage.getItem(STORAGE.theme) || 'auto';
+  const sel = $('theme');
+  sel.value = saved;
+  applyTheme(saved);
+  sel.addEventListener('change', ()=>{
+    const v = sel.value;
+    localStorage.setItem(STORAGE.theme, v);
+    applyTheme(v);
+  });
+  // react to OS change when in auto
+  if (window.matchMedia) {
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    mq.addEventListener?.('change', ()=>{
+      if(($('theme').value||'auto')==='auto') applyTheme('auto');
+    });
+  }
+}
+
+function initScale(){
+  const saved = parseFloat(localStorage.getItem(STORAGE.scale) || '1');
+  document.documentElement.style.setProperty('--scale', saved);
+  const r = $('scale'); r.value = saved;
+  r.addEventListener('input', ()=>{
+    localStorage.setItem(STORAGE.scale, r.value);
+    document.documentElement.style.setProperty('--scale', r.value);
+  });
+}
+
+// --- Events ---
+
+document.querySelectorAll('[data-target]').forEach(btn=>{
+  btn.addEventListener('click', ()=> setTarget(btn.dataset.target));
+});
+
+const cardEl = $('card');
+cardEl.addEventListener('click', ()=> cardEl.classList.toggle('flip'));
+$('btn-flip').addEventListener('click', ()=> cardEl.classList.toggle('flip'));
+
+$('btn-next').addEventListener('click', ()=>{ idx = (idx+1)%order.length; draw(); });
+$('btn-prev').addEventListener('click', ()=>{ idx = (idx-1+order.length)%order.length; draw(); });
+
+function onShuffle(){ shuffle(); draw(); }
+$('btn-shuffle').addEventListener('click', onShuffle);
+
+const btnLearned = $('btn-learned');
+btnLearned.addEventListener('click', ()=>{
+  const k = order[idx];
+  if(learned.has(k)) learned.delete(k); else learned.add(k);
+  persist();
+  updateProgress();
+  drawCard(currentItem());
+});
+
+const btnHide = $('btn-hide-learned');
+btnHide.addEventListener('click', ()=>{
+  const mode = btnHide.dataset.mode || 'hide';
+  hideLearned = mode==='hide';
+  btnHide.querySelector('.label').textContent = hideLearned ? UI.showLearned : UI.hideLearned;
+  btnHide.dataset.mode = hideLearned ? 'show' : 'hide';
+  drawList();
+});
+
+const btnReset = $('btn-reset');
+btnReset.addEventListener('click', ()=>{
+  if(confirm('Reset all learned progress?')){
+    learned.clear();
+    persist();
+    updateProgress();
+    drawList();
+  }
+});
+
+// --- Touch gestures for tablet (swipe) ---
+let startX = 0, startY = 0, startT = 0;
+cardEl.addEventListener('touchstart', e=>{
+  const t = e.changedTouches[0];
+  startX = t.clientX; startY = t.clientY; startT = Date.now();
+}, {passive:true});
+cardEl.addEventListener('touchend', e=>{
+  const t = e.changedTouches[0];
+  const dx = t.clientX - startX; const dy = t.clientY - startY; const dt = Date.now()-startT;
+  if(Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) && dt < 600){
+    if(dx < 0) $('btn-next').click(); else $('btn-prev').click();
+  } else if (Math.abs(dx) < 10 && Math.abs(dy) < 10) {
+    $('btn-flip').click();
+  }
+});
+
+// Startup
+(function init(){
+  const uiLang = (navigator.language||'en').slice(0,2);
+  if(uiLang==='de') setTarget('en'); else setTarget('de');
+  setUILabels();
+  initTheme();
+  initScale();
+})();
+</script>
+</body>
+</html>
